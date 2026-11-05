@@ -117,10 +117,16 @@ function switchView(v) {
 
 // ------------------------------------------------------------------ jobs
 let CV_DEFAULT_DONE = false;
+let JOBS_PAGE = 1;
+const PAGE_SIZE = 10;
 async function loadJobs() {
   try {
     const r = await api('/api/jobs');
     JOBS = r.jobs;
+    JOBS_PAGE = 1;
+    $('#jobsIntro').textContent = (ME && (ME.skills || []).length)
+      ? 'Sorted by how well each job matches your CV skills.'
+      : 'No CV uploaded yet — showing all jobs added in the last 5 days, newest first. Upload your CV to see jobs matched to your skills.';
     // Once a CV is on file, the feed opens on "Matched to my CV" so the user
     // first sees every job related to their CV in one scroll (owner's rule).
     if (!CV_DEFAULT_DONE && ME && (ME.skills || []).length) {
@@ -148,7 +154,11 @@ function renderJobs() {
     if (f === 'notapplied' && j.state === 'applied') return false;
     return true;
   });
-  $('#jobsList').innerHTML = list.length ? list.map(j => `
+  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  if (JOBS_PAGE > totalPages) JOBS_PAGE = totalPages;
+  if (JOBS_PAGE < 1) JOBS_PAGE = 1;
+  const pageList = list.slice((JOBS_PAGE - 1) * PAGE_SIZE, JOBS_PAGE * PAGE_SIZE);
+  $('#jobsList').innerHTML = pageList.length ? pageList.map(j => `
     <div class="job" data-id="${j.id}">
       <div class="job-head">
         <div>
@@ -161,9 +171,21 @@ function renderJobs() {
     </div>`).join('')
     : '<div class="card"><p class="small">No jobs match this filter right now. New jobs are added by the site team — check back soon, and make sure your CV and preferences are up to date.</p></div>';
   document.querySelectorAll('.job').forEach(el => el.addEventListener('click', () => openJob(el.dataset.id)));
+  const pager = $('#jobsPager');
+  if (list.length > PAGE_SIZE) {
+    pager.innerHTML =
+      '<button class="btn secondary" id="pgPrev"' + (JOBS_PAGE <= 1 ? ' disabled' : '') + '>← Previous page</button>' +
+      '<span class="small">Page ' + JOBS_PAGE + ' of ' + totalPages + ' · ' + list.length + ' jobs</span>' +
+      '<button class="btn secondary" id="pgNext"' + (JOBS_PAGE >= totalPages ? ' disabled' : '') + '>Next page →</button>';
+    const pv = $('#pgPrev'), nx = $('#pgNext');
+    if (pv) pv.addEventListener('click', () => { JOBS_PAGE--; renderJobs(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    if (nx) nx.addEventListener('click', () => { JOBS_PAGE++; renderJobs(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  } else {
+    pager.innerHTML = list.length ? '<span class="small">' + list.length + ' jobs</span>' : '';
+  }
 }
-$('#jobSearch').addEventListener('input', renderJobs);
-$('#jobFilter').addEventListener('change', renderJobs);
+$('#jobSearch').addEventListener('input', () => { JOBS_PAGE = 1; renderJobs(); });
+$('#jobFilter').addEventListener('change', () => { JOBS_PAGE = 1; renderJobs(); });
 
 async function openJob(id) {
   try {
