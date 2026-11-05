@@ -18,6 +18,7 @@ async function init() {
   CONFIG = await api('/api/config');
   document.title = CONFIG.siteName + ' — Jobs matched to your CV, all over Pakistan';
   $('#siteLogo').textContent = CONFIG.siteName;
+  const sbLogo = $('#sbLogo'); if (sbLogo) sbLogo.textContent = CONFIG.siteName;
   document.querySelectorAll('.siteNameTxt').forEach(e => e.textContent = CONFIG.siteName);
   $('#signupNotice').textContent = CONFIG.signupNotice;
   $('#demoNote').textContent = CONFIG.demoMode
@@ -37,6 +38,8 @@ function showGuest() {
   $('#userNav').classList.add('hidden');
   $('#guestNav').classList.remove('hidden');
   $('#profileArea').classList.add('hidden');
+  $('#appSidebar').classList.add('hidden');
+  document.body.classList.remove('logged-in');
 }
 function updateProfileChip() {
   if (!ME) return;
@@ -48,6 +51,8 @@ function updateProfileChip() {
   $('#ddName').textContent = displayName;
   $('#ddEmail').textContent = ME.email || '';
   $('#ddId').textContent = ME.id ? ('ID: ' + ME.id) : '';
+  $('#sbAvatar').textContent = initial;
+  $('#sbName').textContent = displayName;
 }
 function showApp() {
   $('#guestView').classList.add('hidden');
@@ -55,6 +60,8 @@ function showApp() {
   $('#userNav').classList.remove('hidden');
   $('#guestNav').classList.add('hidden');
   $('#profileArea').classList.remove('hidden');
+  $('#appSidebar').classList.remove('hidden');
+  document.body.classList.add('logged-in');
   updateProfileChip();
   fillProfile(); renderSettings(); loadJobs(); loadApplications();
   const params = new URLSearchParams(location.search);
@@ -420,14 +427,49 @@ function renderSettings() {
   if (ME.autoApplyNeedsAttention) {
     $('#autoMsg').innerHTML = '<div class="error">Auto-apply needs your attention: sending from your email failed (your Google connection may have been removed). Please disconnect and connect Google again, then turn auto-apply on.</div>';
   }
+  renderTimer();
 }
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+function timerWindowText(t) {
+  const order = [1, 2, 3, 4, 5, 6, 0];
+  const names = order.filter(d => (t.days || []).includes(d)).map(d => DAY_NAMES[d]);
+  return (names.length ? names.join(', ') : 'no days') + ' · ' + (t.start || '10:00') + ' – ' + (t.end || '15:00') + ' PKT';
+}
+function renderTimer() {
+  if (!ME) return;
+  const t = ME.autoTimer || { on: false, days: [1, 2, 3, 4, 5], start: '10:00', end: '15:00' };
+  $('#timerToggle').checked = Boolean(t.on);
+  $('#timerState').textContent = t.on ? 'ON' : 'OFF';
+  document.querySelectorAll('#timerDays input').forEach(cb => { cb.checked = (t.days || []).includes(Number(cb.value)); });
+  $('#timerStart').value = t.start || '10:00';
+  $('#timerEnd').value = t.end || '15:00';
+  if (!t.on) {
+    $('#timerStatus').innerHTML = '<div class="notice">Timer is OFF — auto-apply will not run for you until you turn the timer ON and save.</div>';
+  } else if (ME.timerActiveNow) {
+    $('#timerStatus').innerHTML = '<div class="okmsg">Timer is ON and <b>active right now</b> — window: ' + esc(timerWindowText(t)) + '.</div>';
+  } else {
+    $('#timerStatus').innerHTML = '<div class="notice">Timer is ON, but right now is <b>outside</b> your window — window: ' + esc(timerWindowText(t)) + '. Auto-apply will run when your window opens.</div>';
+  }
+}
+$('#timerSaveBtn').addEventListener('click', async () => {
+  $('#timerMsg').innerHTML = '';
+  const days = [...document.querySelectorAll('#timerDays input:checked')].map(cb => Number(cb.value));
+  try {
+    const r = await api('/api/me/autotimer', {
+      method: 'PUT',
+      body: JSON.stringify({ on: $('#timerToggle').checked, days, start: $('#timerStart').value, end: $('#timerEnd').value })
+    });
+    ME = r.user; renderSettings();
+    $('#timerMsg').innerHTML = '<div class="okmsg">Timer saved.</div>';
+  } catch (e) { $('#timerMsg').innerHTML = '<div class="error">' + esc(e.message) + '</div>'; }
+});
 $('#autoToggle').addEventListener('change', async () => {
   const on = $('#autoToggle').checked;
   $('#autoMsg').innerHTML = '';
   try {
     const r = await api('/api/me/autoapply', { method: 'PUT', body: JSON.stringify({ on, consent: $('#autoConsent').checked }) });
     ME = r.user; renderSettings();
-    if (on) $('#autoMsg').innerHTML = '<div class="okmsg">Auto-apply is ON. Matching email-jobs will now be applied from your own email automatically.</div>';
+    if (on) $('#autoMsg').innerHTML = '<div class="okmsg">Auto-apply is ON. Matching email-jobs will be applied from your own email automatically — inside your timer window below.</div>';
   } catch (e) {
     $('#autoToggle').checked = !on;
     $('#autoMsg').innerHTML = '<div class="error">' + esc(e.message) + '</div>';

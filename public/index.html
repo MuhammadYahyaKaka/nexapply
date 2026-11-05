@@ -14,12 +14,6 @@
       <button id="navLoginBtn" class="active">Log in</button>
       <button id="navSignupBtn">Sign up</button>
     </nav>
-    <nav class="mainnav hidden" id="userNav">
-      <button data-view="jobs" class="active">Jobs for you</button>
-      <button data-view="applications">My applications</button>
-      <button data-view="profile">Profile &amp; CV</button>
-      <button data-view="settings">Auto-apply &amp; email</button>
-    </nav>
     <div class="profile-wrap hidden" id="profileArea">
       <button class="chip" id="profileChip" title="Your account">
         <span class="avatar" id="chipAvatar">?</span>
@@ -42,6 +36,20 @@
     </div>
   </div>
 </header>
+
+<aside class="sidebar hidden" id="appSidebar">
+  <div class="logo" id="sbLogo">NexApply</div>
+  <nav class="sidenav hidden" id="userNav">
+    <button data-view="jobs" class="active">🔍&ensp;Jobs for you</button>
+    <button data-view="applications">✓&ensp;My applications</button>
+    <button data-view="profile">👤&ensp;Profile &amp; CV</button>
+    <button data-view="settings">⚙️&ensp;Auto-apply &amp; email</button>
+  </nav>
+  <div class="sidebar-user">
+    <span class="avatar" id="sbAvatar">?</span>
+    <span id="sbName">Account</span>
+  </div>
+</aside>
 
 <div class="wrap">
 
@@ -194,7 +202,7 @@
       </div>
       <div class="card">
         <h2>Auto-apply</h2>
-        <p class="small">When auto-apply is ON, matching jobs that accept applications <b>by email</b> are applied for you automatically, from your connected email, with your CV attached. Each job is applied only once, ever. Jobs on portals (Indeed, LinkedIn, Rozee forms) are <b>never</b> auto-applied — those you always apply to yourself.</p>
+        <p class="small">When auto-apply is ON, matching jobs that accept applications <b>by email</b> are applied for you automatically, from your connected email, with your CV attached — <b>but only inside your timer window below</b>. Each job is applied only once, ever. Jobs on portals (Indeed, LinkedIn, Rozee forms) are <b>never</b> auto-applied — those you always apply to yourself.</p>
         <div class="toggle-row">
           <label class="switch"><input type="checkbox" id="autoToggle"><span class="slider"></span></label>
           <b>Auto-apply is <span id="autoState">OFF</span></b>
@@ -204,6 +212,31 @@
           <span>I allow <span class="siteNameTxt">NexApply</span> to send job application emails on my behalf, from my connected email, with my CV attached.</span>
         </label>
         <div id="autoMsg"></div>
+      </div>
+      <div class="card">
+        <h2>Auto-apply timer</h2>
+        <p class="small">Choose <b>when</b> auto-apply may run for you. It sends only on your selected days, between your start and end times — <b>Pakistan time (PKT)</b>. Outside your window, nothing is sent for you, even if auto-apply is ON above. If the timer is OFF, auto-apply never runs.</p>
+        <div class="toggle-row">
+          <label class="switch"><input type="checkbox" id="timerToggle"><span class="slider"></span></label>
+          <b>Timer is <span id="timerState">OFF</span></b>
+        </div>
+        <div class="small" style="margin:10px 0 6px">Days:</div>
+        <div id="timerDays" style="display:flex;gap:6px;flex-wrap:wrap">
+          <label class="daychip"><input type="checkbox" value="1"> Mon</label>
+          <label class="daychip"><input type="checkbox" value="2"> Tue</label>
+          <label class="daychip"><input type="checkbox" value="3"> Wed</label>
+          <label class="daychip"><input type="checkbox" value="4"> Thu</label>
+          <label class="daychip"><input type="checkbox" value="5"> Fri</label>
+          <label class="daychip"><input type="checkbox" value="6"> Sat</label>
+          <label class="daychip"><input type="checkbox" value="0"> Sun</label>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px">
+          <label>Start time<br><input type="time" id="timerStart" value="10:00"></label>
+          <label>End time<br><input type="time" id="timerEnd" value="15:00"></label>
+        </div>
+        <p style="margin-top:14px"><button class="btn" id="timerSaveBtn">Save timer</button></p>
+        <div id="timerStatus"></div>
+        <div id="timerMsg"></div>
       </div>
     </section>
 

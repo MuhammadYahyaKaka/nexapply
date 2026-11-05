@@ -94,3 +94,28 @@ footer{border-top:1px solid var(--line);padding:22px;text-align:center;color:var
 .stat b{font-size:25px;display:block;line-height:1.1}
 .stat span{font-size:11px;letter-spacing:.07em;color:var(--muted);text-transform:uppercase}
 @media(max-width:560px){.stat b{font-size:19px}.stat span{font-size:9px}}
+.daychip{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;background:var(--card);font-size:14px}
+.daychip input{width:auto;margin:0}
+.daychip:has(input:checked){background:var(--sage-soft);border-color:var(--sage);font-weight:600}
+
+/* left sidebar layout (logged-in app) */
+.profile-wrap{margin-left:auto}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:236px;background:var(--card);border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:8px;z-index:40}
+.sidebar .logo{padding:2px 10px 14px}
+.sidenav{display:flex;flex-direction:column;gap:4px}
+.sidenav button{display:flex;align-items:center;gap:4px;background:none;border:0;padding:11px 12px;border-radius:12px;cursor:pointer;font-size:15px;color:var(--ink);text-align:left;width:100%}
+.sidenav button.active{background:var(--sage-soft);color:var(--sage-dark);font-weight:700}
+.sidenav button:hover{background:var(--sage-soft)}
+.sidebar-user{margin-top:auto;display:flex;gap:10px;align-items:center;padding:12px 10px 4px;border-top:1px solid var(--line);font-weight:600}
+body.logged-in header.topbar{margin-left:236px}
+body.logged-in .wrap{margin-left:236px}
+body.logged-in .topbar .logo{visibility:hidden}
+@media(max-width:820px){
+  .sidebar{position:static;width:auto;border-right:0;border-bottom:1px solid var(--line);flex-direction:row;align-items:center;padding:10px 12px;overflow-x:auto}
+  .sidebar .logo{padding:0 8px 0 0}
+  .sidenav{flex-direction:row}
+  .sidenav button{white-space:nowrap;width:auto}
+  .sidebar-user{display:none}
+  body.logged-in header.topbar,body.logged-in .wrap{margin-left:0}
+  body.logged-in .topbar .logo{visibility:visible}
+}
