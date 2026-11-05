@@ -10,6 +10,10 @@
 <header class="topbar">
   <div class="topbar-in">
     <div class="logo" id="siteLogo">NexApply</div>
+    <nav class="mainnav" id="guestNav">
+      <button id="navLoginBtn" class="active">Log in</button>
+      <button id="navSignupBtn">Sign up</button>
+    </nav>
     <nav class="mainnav hidden" id="userNav">
       <button data-view="jobs" class="active">Jobs for you</button>
       <button data-view="applications">My applications</button>
@@ -31,32 +35,51 @@
     </div>
     <div class="grid2">
       <div class="card">
-        <h2>Log in / Create account</h2>
-        <div id="authStep1">
-          <label for="authEmail">Your email address</label>
-          <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email">
+        <div id="loginForm">
+          <h2>Log in</h2>
+          <label for="loginEmail">Email address</label>
+          <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email">
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" type="password" placeholder="Your password" autocomplete="current-password">
+          <div id="loginError"></div>
+          <p><button class="btn" id="loginBtn">Log in</button></p>
+          <p class="small">New to <span class="siteNameTxt">NexApply</span>? <a href="#" id="toSignup">Create an account</a></p>
+        </div>
+        <div id="signupForm" class="hidden">
+          <h2>Create your account</h2>
+          <div class="grid2">
+            <div><label for="suFirst">First name</label><input id="suFirst" placeholder="First name" autocomplete="given-name"></div>
+            <div><label for="suLast">Last name</label><input id="suLast" placeholder="Last name" autocomplete="family-name"></div>
+          </div>
+          <label for="suEmail">Email address</label>
+          <input id="suEmail" type="email" placeholder="you@example.com" autocomplete="email">
+          <label for="suPassword">Password (at least 8 characters)</label>
+          <input id="suPassword" type="password" placeholder="Choose a password" autocomplete="new-password">
           <div class="notice" style="margin-top:12px" id="signupNotice">
             Use the email you want your job applications sent from. When email applications are sent for you, they will be sent from this email address.
           </div>
-          <div id="authError"></div>
-          <p><button class="btn" id="sendCodeBtn">Send verification code</button></p>
+          <div id="signupError"></div>
+          <p><button class="btn" id="signupBtn">Create account &amp; send verification code</button></p>
+          <p class="small">We send a code to your email to verify it is really yours. After that, you log in with your email and password.</p>
           <p class="small" id="demoNote"></p>
+          <p class="small">Already have an account? <a href="#" id="toLogin">Log in</a></p>
         </div>
-        <div id="authStep2" class="hidden">
+        <div id="verifyForm" class="hidden">
+          <h2>Verify your email</h2>
           <label for="authCode">Verification code (sent to <span id="codeSentTo"></span>)</label>
           <input id="authCode" inputmode="numeric" maxlength="6" placeholder="6-digit code">
           <div id="authError2"></div>
           <p>
-            <button class="btn" id="verifyBtn">Verify &amp; continue</button>
+            <button class="btn" id="signupVerifyBtn">Verify &amp; create account</button>
             <button class="btn secondary" id="backBtn">Back</button>
           </p>
-          <p class="small">Code expires in 10 minutes. Did not get it? Wait 60 seconds and use "Send verification code" again from the previous step.</p>
+          <p class="small">Code expires in 10 minutes. Did not get it? Wait 60 seconds and use "Create account &amp; send verification code" again from the previous step.</p>
         </div>
       </div>
       <div class="card">
         <h3>How it works</h3>
         <ol class="small" style="line-height:1.9;padding-left:18px">
-          <li><b>Sign up</b> with your email and a verification code — no password needed.</li>
+          <li><b>Sign up</b> with your name, email and a password — we email you a verification code once, to confirm the email is yours. After that you simply log in with your email and password.</li>
           <li><b>Upload your CV</b> — we read your skills from it automatically.</li>
           <li><b>See matched jobs</b> from all over Pakistan, with a match % for each job.</li>
           <li><b>Apply your way:</b> click to apply yourself, or turn on <b>auto-apply</b> and email-applications go out from your own connected email.</li>
