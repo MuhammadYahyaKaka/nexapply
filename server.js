@@ -423,6 +423,9 @@ function isGoogleConnected(u) {
 
 // --------------------------------------------------------------- matching
 function computeMatch(user, job) {
+  // No CV / no skills on file yet — there is nothing to match against,
+  // so no match score is shown at all (owner's rule, 2026-11-05).
+  if (!user.skills || !user.skills.length) return null;
   const userSkills = (user.skills || []).map(s => s.toLowerCase());
   const jobSkills = (job.skills || []);
   let score = 0;
@@ -576,7 +579,7 @@ async function runAutoApply(reason) {
       const candidates = emailJobs
         .map(j => ({ job: j, match: computeMatch(user, j) }))
         .filter(x => x.match >= threshold)
-        .sort((a, b) => b.match - a.match);
+        .sort((a, b) => (b.match ?? -1) - (a.match ?? -1));
       for (const { job, match } of candidates) {
         if (sentToday >= cap) break;
         const st = getState(user.id, job.id);
@@ -919,7 +922,7 @@ async function handleApi(req, res, url) {
   if (p === '/api/jobs' && req.method === 'GET') {
     const user = requireUser(req, res); if (!user) return;
     const jobs = db.jobs.filter(j => j.active).map(j => jobForUser(user, j))
-      .sort((a, b) => b.match - a.match);
+      .sort((a, b) => (b.match ?? -1) - (a.match ?? -1));
     return sendJson(res, 200, { jobs });
   }
   const jobMatch = p.match(/^\/api\/jobs\/([a-z0-9]+)(\/state|\/apply-email)?$/);
