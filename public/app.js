@@ -36,12 +36,26 @@ function showGuest() {
   $('#appView').classList.add('hidden');
   $('#userNav').classList.add('hidden');
   $('#guestNav').classList.remove('hidden');
+  $('#profileArea').classList.add('hidden');
+}
+function updateProfileChip() {
+  if (!ME) return;
+  const initial = String(ME.firstName || ME.name || ME.email || '?').trim().charAt(0).toUpperCase() || '?';
+  const displayName = ME.name || ME.email;
+  $('#chipAvatar').textContent = initial;
+  $('#chipName').textContent = displayName;
+  $('#ddAvatar').textContent = initial;
+  $('#ddName').textContent = displayName;
+  $('#ddEmail').textContent = ME.email || '';
+  $('#ddId').textContent = ME.id ? ('ID: ' + ME.id) : '';
 }
 function showApp() {
   $('#guestView').classList.add('hidden');
   $('#appView').classList.remove('hidden');
   $('#userNav').classList.remove('hidden');
   $('#guestNav').classList.add('hidden');
+  $('#profileArea').classList.remove('hidden');
+  updateProfileChip();
   fillProfile(); renderSettings(); loadJobs(); loadApplications();
   const params = new URLSearchParams(location.search);
   if (params.get('googleConnected')) switchView('settings');
@@ -97,7 +111,19 @@ $('#signupVerifyBtn').addEventListener('click', async () => {
     showApp();
   } catch (e) { $('#authError2').innerHTML = '<div class="error">' + esc(e.message) + '</div>'; }
 });
-$('#logoutBtn').addEventListener('click', async () => {
+$('#profileChip').addEventListener('click', (e) => {
+  e.stopPropagation();
+  $('#profileDropdown').classList.toggle('hidden');
+});
+document.addEventListener('click', (e) => {
+  const dd = $('#profileDropdown');
+  if (dd && !dd.classList.contains('hidden') && !$('#profileArea').contains(e.target)) dd.classList.add('hidden');
+});
+$('#ddSettings').addEventListener('click', () => {
+  $('#profileDropdown').classList.add('hidden');
+  switchView('settings');
+});
+$('#ddLogout').addEventListener('click', async () => {
   await api('/api/auth/logout', { method: 'POST' });
   ME = null; location.href = '/';
 });
@@ -258,9 +284,15 @@ async function loadApplications() {
     const r = await api('/api/me/applications');
     const apps = r.applications;
     const applied = apps.filter(a => a.status === 'applied');
+    $('#appsStats').innerHTML = `
+      <div class="stat-cards">
+        <div class="stat"><b>${apps.length}</b><span>Total tracked</span></div>
+        <div class="stat"><b>${applied.length}</b><span>Applied</span></div>
+        <div class="stat"><b>${apps.filter(a => a.status === 'saved').length}</b><span>Saved</span></div>
+        <div class="stat"><b>${apps.filter(a => a.status === 'skipped').length}</b><span>Skipped</span></div>
+      </div>`;
     $('#appsList').innerHTML = apps.length ? `
-      <p class="small"><b>${applied.length}</b> applied · <b>${apps.filter(a => a.status === 'saved').length}</b> saved · <b>${apps.filter(a => a.status === 'skipped').length}</b> skipped</p>
-      <table><tr><th>Job</th><th>Company</th><th>Status</th><th>Date</th></tr>
+      <table><tr><th>Job</th><th>Company</th><th>Status</th><th>Date applied</th></tr>
       ${apps.map(a => `<tr><td>${esc(a.title)}</td><td>${esc(a.company)}<br><span class="small">${esc(a.city)}</span></td>
         <td>${a.status === 'applied' ? 'Applied' + (a.method ? ' (' + a.method + ')' : '') : a.status === 'saved' ? 'Saved' : 'Skipped'}</td>
         <td>${a.appliedDate || '—'}</td></tr>`).join('')}
@@ -284,6 +316,7 @@ $('#saveProfileBtn').addEventListener('click', async () => {
   try {
     const r = await api('/api/me/profile', { method: 'PUT', body: JSON.stringify({ name: $('#pfName').value, city: $('#pfCity').value, phone: $('#pfPhone').value }) });
     ME = r.user;
+    updateProfileChip();
     $('#profileMsg').innerHTML = '<div class="okmsg">Profile saved.</div>';
   } catch (e) { $('#profileMsg').innerHTML = '<div class="error">' + esc(e.message) + '</div>'; }
 });
