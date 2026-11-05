@@ -673,13 +673,18 @@ function requireAdmin(req, res) {
 }
 function jobForUser(user, job) {
   const st = getState(user.id, job.id);
+  // "Related to my CV": the user has at least one of the job's listed skills
+  // (a job with no listed skills counts as related). No skills on file = not related.
+  const uSk = (user.skills || []).map(s => String(s).toLowerCase());
+  const jSk = (job.skills || []).map(s => String(s).toLowerCase());
+  const related = uSk.length > 0 && (jSk.length === 0 || jSk.some(s => uSk.includes(s)));
   return {
     id: job.id, title: job.title, company: job.company, city: job.city,
     workType: job.workType, field: job.field || '', skills: job.skills || [],
     applyType: job.applyType, applyEmail: job.applyType === 'email' ? job.applyEmail : undefined,
     applyLink: job.applyLink || job.link || '',
     postingDate: job.postingDate || '', description: job.description || '',
-    match: computeMatch(user, job),
+    match: computeMatch(user, job), related,
     state: st ? st.status : null,
     stateMethod: st ? (st.method || null) : null,
     appliedDate: st ? (st.appliedDate || null) : null
