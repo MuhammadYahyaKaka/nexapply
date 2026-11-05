@@ -1,0 +1,15 @@
+{
+  "name": "nexapply",
+  "version": "1.0.0",
+  "description": "NexApply — public multi-user job matching website for Pakistan",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "nodemailer": "^6.9.14"
+  }
+}
