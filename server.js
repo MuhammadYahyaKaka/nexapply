@@ -317,13 +317,13 @@ async function sendSiteEmail(to, subject, text) {
 // ------------------------------------------------------- verification codes
 const CODE_TTL = 10 * 60 * 1000, CODE_MAX_ATTEMPTS = 5, CODE_COOLDOWN = 60 * 1000;
 function getCode(email) { return db.codes.find(c => c.email === email); }
-async function requestCode(email) {
+async function requestCode(email, pending) {
   const existing = getCode(email);
   if (existing && now() - existing.lastSentAt < CODE_COOLDOWN) {
     return { error: 'Please wait 60 seconds before asking for a new code.', cooldown: true };
   }
   const code = String(Math.floor(100000 + Math.random() * 900000));
-  const rec = { email, codeHash: sha256(code), expiresAt: now() + CODE_TTL, attempts: 0, lastSentAt: now() };
+  const rec = { email, codeHash: sha256(code), expiresAt: now() + CODE_TTL, attempts: 0, lastSentAt: now(), pending: pending || null };
   db.codes = db.codes.filter(c => c.email !== email);
   db.codes.push(rec); saveDb();
   const siteName = db.settings.siteName;
@@ -359,8 +359,9 @@ function verifyCode(email, code) {
     rec.attempts++; saveDb();
     return { error: 'Wrong code. ' + Math.max(0, CODE_MAX_ATTEMPTS - rec.attempts) + ' attempts left.' };
   }
+  const pending = rec.pending || null;
   db.codes = db.codes.filter(c => c.email !== email); saveDb();
-  return { ok: true };
+  return { ok: true, pending };
 }
 
 // ---------------------------------------------------------------- sessions
@@ -405,7 +406,7 @@ function findUser(id) { return db.users.find(u => u.id === id); }
 function publicUser(u) {
   if (!u) return null;
   return {
-    id: u.id, email: u.email, name: u.name || '', city: u.city || '', phone: u.phone || '',
+    id: u.id, email: u.email, name: u.name || '', firstName: u.firstName || '', lastName: u.lastName || '', city: u.city || '', phone: u.phone || '',
     skills: u.skills || [],
     preferences: u.preferences || { roles: [], locations: [], workTypes: [] },
     cv: u.cv ? { fileName: u.cv.fileName, uploadedAt: u.cv.uploadedAt } : null,
@@ -749,35 +750,55 @@ async function handleApi(req, res, url) {
     });
   }
 
-  // ---- user auth
-  if (p === '/api/auth/request-code' && req.method === 'POST') {
-    const body = await readJson(req);
-    const email = normEmail(body.email);
+  // ---- user auth (sign up with name + email + password, verify email once
+  // with a code, then log in with email + password — owner's flow, 2026-11-05)
+  if (p === '/api/auth/signup' && req.method === 'POST') {
+    const b = await readJson(req);
+    const email = normEmail(b.email);
+    const firstName = String(b.firstName || '').trim().slice(0, 60);
+    const lastName = String(b.lastName || '').trim().slice(0, 60);
+    const password = String(b.password || '');
+    if (!firstName || !lastName) return sendJson(res, 400, { error: 'Please enter your first and last name.' });
     if (!validEmail(email)) return sendJson(res, 400, { error: 'Please enter a valid email address.' });
-    const r = await requestCode(email);
-    if (r.error) return sendJson(res, 429, r);
+    if (password.length < 8) return sendJson(res, 400, { error: 'Password must be at least 8 characters.' });
+    if (findUserByEmail(email)) return sendJson(res, 400, { error: 'This account is already created. Please log in instead.' });
+    const r = await requestCode(email, { firstName, lastName, passwordHash: scryptHash(password) });
+    if (r.error) return sendJson(res, r.cooldown ? 429 : 400, r);
     return sendJson(res, 200, r);
   }
-  if (p === '/api/auth/verify' && req.method === 'POST') {
+  if (p === '/api/auth/signup/verify' && req.method === 'POST') {
     const body = await readJson(req);
     const email = normEmail(body.email);
     if (!validEmail(email)) return sendJson(res, 400, { error: 'Please enter a valid email address.' });
     const r = verifyCode(email, body.code || '');
     if (!r.ok) return sendJson(res, 400, r);
-    let user = findUserByEmail(email);
-    let isNew = false;
-    if (!user) {
-      user = {
-        id: uid(), email, name: '', city: '', phone: '',
-        skills: [], skillSource: null,
-        preferences: { roles: [], locations: [], workTypes: [] },
-        cv: null, google: null, autoApply: { on: false, consentAt: null },
-        autoApplyNeedsAttention: false, createdAt: now()
-      };
-      db.users.push(user); isNew = true; saveDb();
-    }
+    if (!r.pending) return sendJson(res, 400, { error: 'Please fill the sign up form first, so we know your name and password.' });
+    if (findUserByEmail(email)) return sendJson(res, 400, { error: 'This account is already created. Please log in instead.' });
+    const user = {
+      id: uid(), email,
+      firstName: r.pending.firstName, lastName: r.pending.lastName,
+      name: (r.pending.firstName + ' ' + r.pending.lastName).trim(),
+      passwordHash: r.pending.passwordHash,
+      city: '', phone: '',
+      skills: [], skillSource: null,
+      preferences: { roles: [], locations: [], workTypes: [] },
+      cv: null, google: null, autoApply: { on: false, consentAt: null },
+      autoApplyNeedsAttention: false, createdAt: now()
+    };
+    db.users.push(user); saveDb();
     const token = createSession(user.id, 'user');
-    return sendJson(res, 200, { ok: true, isNew, user: publicUser(user) }, { 'Set-Cookie': sessionCookie(token) });
+    return sendJson(res, 200, { ok: true, isNew: true, user: publicUser(user) }, { 'Set-Cookie': sessionCookie(token) });
+  }
+  if (p === '/api/auth/login' && req.method === 'POST') {
+    const b = await readJson(req);
+    const email = normEmail(b.email);
+    if (!validEmail(email)) return sendJson(res, 400, { error: 'Please enter a valid email address.' });
+    const user = findUserByEmail(email);
+    if (!user) return sendJson(res, 404, { error: 'This account is not created. Please sign up first.' });
+    if (!user.passwordHash) return sendJson(res, 400, { error: 'This account was created before passwords were added. Please sign up again with a password.' });
+    if (!scryptVerify(b.password || '', user.passwordHash)) return sendJson(res, 401, { error: 'Incorrect password. Please try again.' });
+    const token = createSession(user.id, 'user');
+    return sendJson(res, 200, { ok: true, user: publicUser(user) }, { 'Set-Cookie': sessionCookie(token) });
   }
   if (p === '/api/auth/logout' && req.method === 'POST') {
     destroySession(req);
