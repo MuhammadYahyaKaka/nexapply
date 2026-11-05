@@ -35,37 +35,63 @@ function showGuest() {
   $('#guestView').classList.remove('hidden');
   $('#appView').classList.add('hidden');
   $('#userNav').classList.add('hidden');
+  $('#guestNav').classList.remove('hidden');
 }
 function showApp() {
   $('#guestView').classList.add('hidden');
   $('#appView').classList.remove('hidden');
   $('#userNav').classList.remove('hidden');
+  $('#guestNav').classList.add('hidden');
   fillProfile(); renderSettings(); loadJobs(); loadApplications();
   const params = new URLSearchParams(location.search);
   if (params.get('googleConnected')) switchView('settings');
 }
 
 // ------------------------------------------------------------------ auth
-$('#sendCodeBtn').addEventListener('click', async () => {
-  const email = $('#authEmail').value.trim();
-  $('#authError').innerHTML = '';
+let SIGNUP_EMAIL = '';
+function showAuth(which) {
+  $('#loginForm').classList.toggle('hidden', which !== 'login');
+  $('#signupForm').classList.toggle('hidden', which !== 'signup');
+  $('#verifyForm').classList.toggle('hidden', which !== 'verify');
+  $('#navLoginBtn').classList.toggle('active', which === 'login');
+  $('#navSignupBtn').classList.toggle('active', which !== 'login');
+}
+$('#navLoginBtn').addEventListener('click', () => showAuth('login'));
+$('#navSignupBtn').addEventListener('click', () => showAuth('signup'));
+$('#toSignup').addEventListener('click', (e) => { e.preventDefault(); showAuth('signup'); });
+$('#toLogin').addEventListener('click', (e) => { e.preventDefault(); showAuth('login'); });
+$('#loginBtn').addEventListener('click', async () => {
+  const email = $('#loginEmail').value.trim();
+  const password = $('#loginPassword').value;
+  $('#loginError').innerHTML = '';
   try {
-    await api('/api/auth/request-code', { method: 'POST', body: JSON.stringify({ email }) });
-    $('#codeSentTo').textContent = email;
-    $('#authStep1').classList.add('hidden');
-    $('#authStep2').classList.remove('hidden');
-  } catch (e) { $('#authError').innerHTML = '<div class="error">' + esc(e.message) + '</div>'; }
+    const r = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+    ME = r.user;
+    history.replaceState({}, '', '/');
+    showApp();
+  } catch (e) { $('#loginError').innerHTML = '<div class="error">' + esc(e.message) + '</div>'; }
 });
-$('#backBtn').addEventListener('click', () => {
-  $('#authStep2').classList.add('hidden');
-  $('#authStep1').classList.remove('hidden');
+$('#signupBtn').addEventListener('click', async () => {
+  const body = {
+    firstName: $('#suFirst').value.trim(),
+    lastName: $('#suLast').value.trim(),
+    email: $('#suEmail').value.trim(),
+    password: $('#suPassword').value
+  };
+  $('#signupError').innerHTML = '';
+  try {
+    await api('/api/auth/signup', { method: 'POST', body: JSON.stringify(body) });
+    SIGNUP_EMAIL = body.email;
+    $('#codeSentTo').textContent = body.email;
+    showAuth('verify');
+  } catch (e) { $('#signupError').innerHTML = '<div class="error">' + esc(e.message) + '</div>'; }
 });
-$('#verifyBtn').addEventListener('click', async () => {
-  const email = $('#authEmail').value.trim();
+$('#backBtn').addEventListener('click', () => showAuth('signup'));
+$('#signupVerifyBtn').addEventListener('click', async () => {
   const code = $('#authCode').value.trim();
   $('#authError2').innerHTML = '';
   try {
-    const r = await api('/api/auth/verify', { method: 'POST', body: JSON.stringify({ email, code }) });
+    const r = await api('/api/auth/signup/verify', { method: 'POST', body: JSON.stringify({ email: SIGNUP_EMAIL, code }) });
     ME = r.user;
     history.replaceState({}, '', '/');
     showApp();
