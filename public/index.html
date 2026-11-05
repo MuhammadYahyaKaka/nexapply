@@ -19,8 +19,27 @@
       <button data-view="applications">My applications</button>
       <button data-view="profile">Profile &amp; CV</button>
       <button data-view="settings">Auto-apply &amp; email</button>
-      <button id="logoutBtn">Log out</button>
     </nav>
+    <div class="profile-wrap hidden" id="profileArea">
+      <button class="chip" id="profileChip" title="Your account">
+        <span class="avatar" id="chipAvatar">?</span>
+        <span id="chipName">Account</span>
+        <span class="small">▾</span>
+      </button>
+      <div class="dropdown hidden" id="profileDropdown">
+        <div class="dd-head">
+          <span class="avatar lg" id="ddAvatar">?</span>
+          <div>
+            <div class="dd-name" id="ddName">—</div>
+            <div class="small" id="ddEmail">—</div>
+            <div class="small dd-id" id="ddId"></div>
+          </div>
+        </div>
+        <hr class="dd-sep">
+        <button class="dd-row" id="ddSettings">⚙️&ensp;Settings</button>
+        <button class="dd-row dd-logout" id="ddLogout">↩&ensp;Logout</button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -116,6 +135,7 @@
       <div class="card">
         <h2>My applications</h2>
         <p class="small">Every job you saved, applied to (yourself or by auto-apply), or skipped. An applied job is final — the same job is never applied twice.</p>
+        <div id="appsStats"></div>
         <div id="appsList"></div>
       </div>
     </section>
