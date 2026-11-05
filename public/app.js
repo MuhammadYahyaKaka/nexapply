@@ -122,7 +122,7 @@ function renderJobs() {
           <div class="meta"><b>${esc(j.company)}</b> · ${esc(j.city)} · ${esc(j.workType)}${j.field ? ' · ' + esc(j.field) : ''}<br>
           Posted: ${esc(j.postingDate || '—')} · Skills: ${j.skills.map(esc).join(', ') || '—'}</div>
         </div>
-        <div class="match">${j.match}%<br><span class="small">match</span></div>
+        ${j.match === null || j.match === undefined ? '<div class="match"><span class="small">Add your CV<br>to see match</span></div>' : `<div class="match">${j.match}%<br><span class="small">match</span></div>`}
       </div>
     </div>`).join('')
     : '<div class="card"><p class="small">No jobs match this filter right now. New jobs are added by the site team — check back soon, and make sure your CV and preferences are up to date.</p></div>';
@@ -152,7 +152,7 @@ async function openJob(id) {
     $('#jobModal').innerHTML = `
     <div class="modal-bg"><div class="modal">
       <div class="job-head"><h2 style="margin:0">${esc(j.title)}</h2><button class="btn secondary small" data-act="close">Close</button></div>
-      <p class="meta" style="color:var(--muted)"><b>${esc(j.company)}</b> · ${esc(j.city)} · ${esc(j.workType)} · Match: <b>${j.match}%</b> ${j.applyType === 'email' ? '<span class="badge email">Email apply</span>' : '<span class="badge portal">Portal apply</span>'}</p>
+      <p class="meta" style="color:var(--muted)"><b>${esc(j.company)}</b> · ${esc(j.city)} · ${esc(j.workType)} · ${j.match === null || j.match === undefined ? 'Match: <b>add your CV to see your match</b>' : 'Match: <b>' + j.match + '%</b>'} ${j.applyType === 'email' ? '<span class="badge email">Email apply</span>' : '<span class="badge portal">Portal apply</span>'}</p>
       <p>${esc(j.description || '')}</p>
       <h4>Skills you have</h4><div class="chips">${j.haveSkills.length ? j.haveSkills.map(s => '<span class="chip">' + esc(s) + '</span>').join('') : '<span class="small">None of the listed skills yet</span>'}</div>
       <h4>Skills missing</h4><div class="chips">${j.missingSkills.length ? j.missingSkills.map(s => '<span class="chip miss">' + esc(s) + '</span>').join('') : '<span class="small">You have all the listed skills.</span>'}</div>
