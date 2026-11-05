@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — NexApply</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="topbar"><div class="topbar-in">
+  <div class="logo">NexApply <span style="font-size:13px;color:var(--muted)">Admin</span></div>
+  <nav class="mainnav hidden" id="adminNav">
+    <button data-tab="stats" class="active">Stats</button>
+    <button data-tab="jobs">Jobs</button>
+    <button data-tab="users">Users</button>
+    <button data-tab="settings">Settings</button>
+    <button id="adminLogout">Log out</button>
+  </nav>
+</div></header>
+
+<div class="wrap">
+  <!-- setup -->
+  <div class="card hidden" id="setupBox" style="max-width:520px;margin:30px auto">
+    <h2>Admin setup</h2>
+    <p class="small">No admin account exists yet. Enter the one-time setup code printed in the server console, then choose the admin email and password.</p>
+    <label>One-time setup code</label><input id="suCode" inputmode="numeric" placeholder="Code from server console">
+    <label>Admin email</label><input id="suEmail" type="email">
+    <label>Password (min 8 characters)</label><input id="suPass" type="password">
+    <div id="suMsg"></div>
+    <p><button class="btn" id="suBtn">Create admin account</button></p>
+  </div>
+
+  <!-- login -->
+  <div class="card hidden" id="loginBox" style="max-width:520px;margin:30px auto">
+    <h2>Admin login</h2>
+    <label>Email</label><input id="liEmail" type="email">
+    <label>Password</label><input id="liPass" type="password">
+    <div id="liMsg"></div>
+    <p><button class="btn" id="liBtn">Log in</button></p>
+  </div>
+
+  <!-- panel -->
+  <div id="panel" class="hidden">
+    <section id="tab-stats">
+      <div class="card"><h2>Site overview</h2><div class="stat-grid" id="statsGrid"></div>
+      <p class="small" id="statsNotes" style="margin-top:14px"></p></div>
+    </section>
+
+    <section id="tab-jobs" class="hidden">
+      <div class="card">
+        <h2 id="jobFormTitle">Add a job</h2>
+        <input type="hidden" id="jfId">
+        <div class="grid2">
+          <div><label>Job title *</label><input id="jfTitle"></div>
+          <div><label>Company *</label><input id="jfCompany"></div>
+        </div>
+        <div class="grid2">
+          <div><label>City</label><input id="jfCity" placeholder="e.g. Karachi"></div>
+          <div><label>Field / category</label><input id="jfField" placeholder="e.g. IT / Software"></div>
+        </div>
+        <div class="grid2">
+          <div><label>Work type</label><select id="jfWorkType"><option>On-site</option><option>Hybrid</option><option>Remote</option></select></div>
+          <div><label>Posting date</label><input id="jfDate" placeholder="e.g. 2026-11-05 or Not shown"></div>
+        </div>
+        <label>Required skills (comma separated)</label><input id="jfSkills" placeholder="JavaScript, React, HTML">
+        <div class="grid2">
+          <div><label>Apply method</label><select id="jfApplyType"><option value="portal">Portal (user applies via link)</option><option value="email">Email (apply at email)</option></select></div>
+          <div><label>Apply email (email jobs)</label><input id="jfApplyEmail" placeholder="hr@company.com"></div>
+        </div>
+        <label>Apply link (portal jobs)</label><input id="jfApplyLink" placeholder="https://…">
+        <label>Description</label><textarea id="jfDesc" rows="4"></textarea>
+        <label style="font-weight:400"><input type="checkbox" id="jfActive" checked style="width:auto"> Active (visible to users)</label>
+        <div id="jfMsg"></div>
+        <p><button class="btn" id="jfSave">Save job</button> <button class="btn secondary hidden" id="jfCancel">Cancel edit</button></p>
+      </div>
+      <div class="card"><h2>All jobs</h2><div id="jobsTable"></div></div>
+    </section>
+
+    <section id="tab-users" class="hidden">
+      <div class="card"><h2>Users</h2><div id="usersTable"></div></div>
+    </section>
+
+    <section id="tab-settings" class="hidden">
+      <div class="card">
+        <h2>Settings</h2>
+        <p class="small">Everything here is stored in the database — nothing is hardcoded. Leave a password/secret field empty to keep the saved value.</p>
+        <label>Site name</label><input id="stSiteName" style="max-width:320px">
+        <h3 style="margin-top:26px">Google connect (users send applications from their own Gmail)</h3>
+        <p class="small">Create an OAuth client in Google Cloud Console (type: Web application). Authorized redirect URI: <b id="redirectUri"></b><br>
+        Scopes used: openid, email, gmail.send. Paste the Client ID and Secret here.</p>
+        <label>Google Client ID</label><input id="stGid">
+        <label>Google Client Secret</label><input id="stGsecret" type="password" placeholder="Leave empty to keep saved secret">
+        <h3 style="margin-top:26px">Verification-code sender (SMTP — Gmail app password)</h3>
+        <p class="small">Verification codes are emailed from ONE active sender. Both slots are kept; choose which one is active. Use a Gmail <b>App Password</b> (Google Account → Security → 2-Step Verification → App passwords), not the normal password.</p>
+        <label>Product Gmail — email</label><input id="stProdEmail">
+        <label>Product Gmail — app password</label><input id="stProdPass" type="password" placeholder="Leave empty to keep saved password">
+        <label>Owner Gmail — email</label><input id="stOwnEmail">
+        <label>Owner Gmail — app password</label><input id="stOwnPass" type="password" placeholder="Leave empty to keep saved password">
+        <label>Active sender</label>
+        <select id="stActive" style="max-width:320px"><option value="product">Product Gmail</option><option value="owner">Owner Gmail</option></select>
+        <h3 style="margin-top:26px">Auto-apply</h3>
+        <div class="grid2">
+          <div><label>Minimum match % for auto-apply</label><input id="stThreshold" type="number" min="0" max="100"></div>
+          <div><label>Max auto-applications per user per day</label><input id="stCap" type="number" min="1" max="100"></div>
+        </div>
+        <div id="stMsg"></div>
+        <p><button class="btn" id="stSave">Save settings</button></p>
+      </div>
+    </section>
+  </div>
+</div>
+<script src="/admin.js"></script>
+</body>
+</html>

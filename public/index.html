@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexApply — Jobs matched to your CV, all over Pakistan</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="logo" id="siteLogo">NexApply</div>
+    <nav class="mainnav hidden" id="userNav">
+      <button data-view="jobs" class="active">Jobs for you</button>
+      <button data-view="applications">My applications</button>
+      <button data-view="profile">Profile &amp; CV</button>
+      <button data-view="settings">Auto-apply &amp; email</button>
+      <button id="logoutBtn">Log out</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- Logged-out view -->
+  <div id="guestView">
+    <div class="hero">
+      <h1>Jobs from all over Pakistan, matched to <em>your</em> CV.</h1>
+      <p>Create a free account with your email, upload your CV, and we show you the jobs that fit your skills.
+      Turn on auto-apply and, for jobs that accept applications by email, we send your application <b>from your own email address</b> — you can always apply yourself too.</p>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h2>Log in / Create account</h2>
+        <div id="authStep1">
+          <label for="authEmail">Your email address</label>
+          <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email">
+          <div class="notice" style="margin-top:12px" id="signupNotice">
+            Use the email you want your job applications sent from. When email applications are sent for you, they will be sent from this email address.
+          </div>
+          <div id="authError"></div>
+          <p><button class="btn" id="sendCodeBtn">Send verification code</button></p>
+          <p class="small" id="demoNote"></p>
+        </div>
+        <div id="authStep2" class="hidden">
+          <label for="authCode">Verification code (sent to <span id="codeSentTo"></span>)</label>
+          <input id="authCode" inputmode="numeric" maxlength="6" placeholder="6-digit code">
+          <div id="authError2"></div>
+          <p>
+            <button class="btn" id="verifyBtn">Verify &amp; continue</button>
+            <button class="btn secondary" id="backBtn">Back</button>
+          </p>
+          <p class="small">Code expires in 10 minutes. Did not get it? Wait 60 seconds and use "Send verification code" again from the previous step.</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>How it works</h3>
+        <ol class="small" style="line-height:1.9;padding-left:18px">
+          <li><b>Sign up</b> with your email and a verification code — no password needed.</li>
+          <li><b>Upload your CV</b> — we read your skills from it automatically.</li>
+          <li><b>See matched jobs</b> from all over Pakistan, with a match % for each job.</li>
+          <li><b>Apply your way:</b> click to apply yourself, or turn on <b>auto-apply</b> and email-applications go out from your own connected email.</li>
+          <li>Portal jobs (Indeed, LinkedIn, Rozee forms) are always applied by you — we never ask for your portal passwords.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logged-in views -->
+  <div id="appView" class="hidden">
+
+    <section id="view-jobs">
+      <div class="card">
+        <h2 style="margin-bottom:4px">Jobs for you</h2>
+        <p class="small" id="jobsIntro">Sorted by how well each job matches your CV skills.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+          <input id="jobSearch" placeholder="Search title, company, city…" style="flex:1;min-width:200px">
+          <select id="jobFilter" style="width:auto">
+            <option value="">All jobs</option>
+            <option value="email">Email apply only</option>
+            <option value="portal">Portal apply only</option>
+            <option value="saved">Saved</option>
+            <option value="notapplied">Not applied yet</option>
+          </select>
+        </div>
+      </div>
+      <div id="jobsList"></div>
+    </section>
+
+    <section id="view-applications" class="hidden">
+      <div class="card">
+        <h2>My applications</h2>
+        <p class="small">Every job you saved, applied to (yourself or by auto-apply), or skipped. An applied job is final — the same job is never applied twice.</p>
+        <div id="appsList"></div>
+      </div>
+    </section>
+
+    <section id="view-profile" class="hidden">
+      <div class="card">
+        <h2>Profile</h2>
+        <div id="profileMsg"></div>
+        <div class="grid2">
+          <div><label>Full name</label><input id="pfName" placeholder="Your full name"></div>
+          <div><label>City</label><input id="pfCity" placeholder="e.g. Karachi"></div>
+        </div>
+        <label>Phone</label><input id="pfPhone" placeholder="03xx xxxxxxx" style="max-width:320px">
+        <p><button class="btn" id="saveProfileBtn">Save profile</button></p>
+      </div>
+
+      <div class="card">
+        <h2>My CV</h2>
+        <div id="cvInfo"></div>
+        <label>Upload CV (PDF, DOCX or TXT — max 5 MB)</label>
+        <input type="file" id="cvFile" accept=".pdf,.docx,.txt">
+        <p><button class="btn" id="uploadCvBtn">Upload CV</button>
+        <button class="btn danger hidden" id="removeCvBtn">Remove CV</button></p>
+        <div id="cvMsg"></div>
+        <h3 style="margin-top:22px">My skills</h3>
+        <p class="small">Skills are read from your CV automatically. You can add or remove them — job matching uses this list.</p>
+        <div class="chips" id="skillChips"></div>
+        <div style="display:flex;gap:8px;max-width:420px">
+          <input id="newSkill" placeholder="Add a skill, e.g. React">
+          <button class="btn small" id="addSkillBtn" style="flex:none">Add</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Preferences</h2>
+        <label>Jobs I want (add roles, press Enter or Add)</label>
+        <div class="chips" id="roleChips"></div>
+        <div style="display:flex;gap:8px;max-width:420px">
+          <input id="newRole" placeholder="e.g. Front-End Developer">
+          <button class="btn small" id="addRoleBtn" style="flex:none">Add</button>
+        </div>
+        <label>Locations</label>
+        <div class="chips" id="locChips"></div>
+        <label>Work types</label>
+        <div class="chips" id="typeChips"></div>
+        <p><button class="btn" id="savePrefsBtn">Save preferences</button></p>
+        <div id="prefsMsg"></div>
+      </div>
+    </section>
+
+    <section id="view-settings" class="hidden">
+      <div class="card">
+        <h2>Your application email</h2>
+        <p class="small">Applications that are sent for you must go <b>from your own email address</b> — the same email you signed up with (<b id="myEmail"></b>). To allow that, connect your Google account below. We only get permission to <b>send</b> email from your account; we never see your Google password, and we cannot read your inbox.</p>
+        <div id="googleBox"></div>
+      </div>
+      <div class="card">
+        <h2>Auto-apply</h2>
+        <p class="small">When auto-apply is ON, matching jobs that accept applications <b>by email</b> are applied for you automatically, from your connected email, with your CV attached. Each job is applied only once, ever. Jobs on portals (Indeed, LinkedIn, Rozee forms) are <b>never</b> auto-applied — those you always apply to yourself.</p>
+        <div class="toggle-row">
+          <label class="switch"><input type="checkbox" id="autoToggle"><span class="slider"></span></label>
+          <b>Auto-apply is <span id="autoState">OFF</span></b>
+        </div>
+        <label style="font-weight:400;display:flex;gap:8px;align-items:flex-start">
+          <input type="checkbox" id="autoConsent" style="width:auto;margin-top:3px">
+          <span>I allow <span class="siteNameTxt">NexApply</span> to send job application emails on my behalf, from my connected email, with my CV attached.</span>
+        </label>
+        <div id="autoMsg"></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div id="jobModal" class="hidden"></div>
+
+<footer>
+  <span class="siteNameTxt">NexApply</span> — jobs from all over Pakistan, matched to your CV.
+</footer>
+
+<script src="/app.js"></script>
+</body>
+</html>
