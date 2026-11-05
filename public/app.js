@@ -116,10 +116,17 @@ function switchView(v) {
 }
 
 // ------------------------------------------------------------------ jobs
+let CV_DEFAULT_DONE = false;
 async function loadJobs() {
   try {
     const r = await api('/api/jobs');
     JOBS = r.jobs;
+    // Once a CV is on file, the feed opens on "Matched to my CV" so the user
+    // first sees every job related to their CV in one scroll (owner's rule).
+    if (!CV_DEFAULT_DONE && ME && (ME.skills || []).length) {
+      $('#jobFilter').value = 'cv';
+      CV_DEFAULT_DONE = true;
+    }
     renderJobs();
   } catch (e) { $('#jobsList').innerHTML = '<div class="error">' + esc(e.message) + '</div>'; }
 }
@@ -134,6 +141,7 @@ function renderJobs() {
   const f = $('#jobFilter').value;
   const list = JOBS.filter(j => {
     if (q && !(j.title + ' ' + j.company + ' ' + j.city).toLowerCase().includes(q)) return false;
+    if (f === 'cv' && !j.related) return false;
     if (f === 'email' && j.applyType !== 'email') return false;
     if (f === 'portal' && j.applyType !== 'portal') return false;
     if (f === 'saved' && j.state !== 'saved') return false;
