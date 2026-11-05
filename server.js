@@ -762,6 +762,8 @@ function publicUser(u) {
     preferences: u.preferences || { roles: [], locations: [], workTypes: [] },
     cv: u.cv ? { fileName: u.cv.fileName, uploadedAt: u.cv.uploadedAt } : null,
     autoApply: Boolean(u.autoApply && u.autoApply.on),
+    autoTimer: u.autoTimer || defaultAutoTimer(),
+    timerActiveNow: timerActiveNow(u),
     autoApplyNeedsAttention: Boolean(u.autoApplyNeedsAttention),
     googleConnected: isGoogleConnected(u),
     googleEmail: u.google && u.google.email ? u.google.email : null,
@@ -912,6 +914,26 @@ function sentTodayCount(userId) {
   const start = new Date(); start.setHours(0, 0, 0, 0);
   return db.sendLog.filter(l => l.userId === userId && l.at >= start.getTime()).length;
 }
+// ---- per-user auto-apply timer (Pakistan time) ----
+function defaultAutoTimer() { return { on: false, days: [1, 2, 3, 4, 5], start: '10:00', end: '15:00' }; }
+function pktNow() {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Karachi', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
+  const get = t => (parts.find(p => p.type === t) || {}).value;
+  const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(get('weekday'));
+  return { day, minutes: (Number(get('hour')) % 24) * 60 + Number(get('minute')) };
+}
+function timeToMin(s) { const a = String(s || '').split(':').map(Number); return (a[0] || 0) * 60 + (a[1] || 0); }
+function timerActiveNow(u) {
+  const t = (u && u.autoTimer) || defaultAutoTimer();
+  if (!t.on) return false;
+  const days = Array.isArray(t.days) ? t.days : [];
+  const cur = pktNow();
+  if (!days.includes(cur.day)) return false;
+  const start = timeToMin(t.start), end = timeToMin(t.end);
+  if (end <= start) return false;
+  return cur.minutes >= start && cur.minutes < end;
+}
+
 let engineRunning = false;
 async function runAutoApply(reason) {
   if (engineRunning) return { skipped: 'already running' };
@@ -923,6 +945,7 @@ async function runAutoApply(reason) {
     const emailJobs = db.jobs.filter(j => j.active && j.applyType === 'email' && j.applyEmail);
     for (const user of db.users) {
       if (!user.autoApply || !user.autoApply.on) continue;
+      if (!timerActiveNow(user)) { results.timerOff = (results.timerOff || 0) + 1; continue; }
       if (user.autoApplyNeedsAttention) continue;
       if (!isGoogleConnected(user)) continue;
       if (!user.cv || !user.cv.filePath) continue;
@@ -1138,7 +1161,7 @@ async function handleApi(req, res, url) {
       city: '', phone: '',
       skills: [], skillSource: null,
       preferences: { roles: [], locations: [], workTypes: [] },
-      cv: null, google: null, autoApply: { on: false, consentAt: null },
+      cv: null, google: null, autoApply: { on: false, consentAt: null }, autoTimer: defaultAutoTimer(),
       autoApplyNeedsAttention: false, createdAt: now()
     };
     db.users.push(user); saveDb();
@@ -1214,6 +1237,26 @@ async function handleApi(req, res, url) {
       }
       saveDb();
       if (b.on) runAutoApply('toggle-on').catch(e => console.error('auto-apply:', e.message));
+      return sendJson(res, 200, { user: publicUser(user) });
+    }
+    if (p === '/api/me/autotimer' && req.method === 'PUT') {
+      const b = await readJson(req);
+      const days = Array.isArray(b.days) ? [...new Set(b.days.map(Number).filter(d => Number.isInteger(d) && d >= 0 && d <= 6))] : [];
+      const validTime = s => /^([01]\d|2[0-3]):[0-5]\d$/.test(String(s || ''));
+      if (!validTime(b.start) || !validTime(b.end)) {
+        return sendJson(res, 400, { error: 'Please set a valid start and end time.' });
+      }
+      if (b.on && days.length === 0) {
+        return sendJson(res, 400, { error: 'Please choose at least one day for the timer.' });
+      }
+      if (b.on && timeToMin(b.end) <= timeToMin(b.start)) {
+        return sendJson(res, 400, { error: 'End time must be after start time.' });
+      }
+      user.autoTimer = { on: Boolean(b.on), days, start: String(b.start), end: String(b.end) };
+      saveDb();
+      if (user.autoTimer.on && user.autoApply && user.autoApply.on) {
+        runAutoApply('timer-save').catch(e => console.error('auto-apply:', e.message));
+      }
       return sendJson(res, 200, { user: publicUser(user) });
     }
     if (p === '/api/me/google/connect' && req.method === 'GET') {
