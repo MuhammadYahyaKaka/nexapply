@@ -87,6 +87,357 @@ const SEED_JOBS = [
     description: 'Developer role working with JavaScript, React.js and Node.js — Karachi.'
   }
 ];
+// More real jobs harvested 2026-11-05 from public portals (Rozee, Indeed PK,
+// Mustakbil and job boards) — posted within the last ~5 days where a date is
+// shown; otherwise the posting date honestly says it was not shown.
+const SEED_JOBS_MORE = [
+  {
+    "applyEmail": "",
+    "applyLink": "https://www.rozee.pk/EN/full-stack-developer-reactjs-nodejs-mern-stack-lahore-jobs-1738446",
+    "applyType": "portal",
+    "city": "Lahore",
+    "company": "Sprouto Group",
+    "description": "Full-time onsite role in DHA Phase 8, Lahore, building web applications with React.js, Next.js and Node.js; requires 3+ years of JavaScript/TypeScript, React, Node, MongoDB and Express experience. Salary shown on listing: Rs 100,000 to Rs 120,000 per month.",
+    "field": "IT / Software",
+    "postingDate": "Not shown (found 2026-11-05)",
+    "skills": [
+      "React.js",
+      "Node.js",
+      "MongoDB",
+      "Express.js",
+      "TypeScript"
+    ],
+    "title": "Full Stack Developer (React.js + Node.js / MERN Stack)",
+    "workType": "On-site",
+    "link": "https://www.rozee.pk/EN/full-stack-developer-reactjs-nodejs-mern-stack-lahore-jobs-1738446"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://www.rozee.pk/metaproof-lead-full-stack-developer-react-node-nextjs-islamabad-lahore-jobs-1731480",
+    "applyType": "portal",
+    "city": "Remote",
+    "company": "METAPROOF",
+    "description": "Remote (Pakistan) lead role owning the technical architecture of a platform combining data, AI and blockchain for supply-chain transparency; minimum 5 years of professional experience, with occasional meetings possible in Lahore or Islamabad.",
+    "field": "IT / Software",
+    "postingDate": "Not shown (found 2026-11-05)",
+    "skills": [
+      "React.js",
+      "Node.js",
+      "Next.js",
+      "MongoDB",
+      "AWS"
+    ],
+    "title": "Lead Full Stack Developer - React / Node / Next.js",
+    "workType": "Remote",
+    "link": "https://www.rozee.pk/metaproof-lead-full-stack-developer-react-node-nextjs-islamabad-lahore-jobs-1731480"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://www.rozee.pk/job/jsearch/q/Node.js Developer - Intern",
+    "applyType": "portal",
+    "city": "Islamabad",
+    "company": "Dartsyn LLC",
+    "description": "Three-month unpaid internship at DartSyn, NUST Ascend Tower office in Islamabad, at a technology company working in IoT, robotics, web, mobile apps and AI.",
+    "field": "IT / Software",
+    "postingDate": "Nov 2, 2026",
+    "skills": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "React",
+      "Node.js"
+    ],
+    "title": "Web Developer Intern",
+    "workType": "On-site",
+    "link": "https://www.rozee.pk/job/jsearch/q/Node.js Developer - Intern"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://www.rozee.pk/brand-manager-karachi-jobs-1935857",
+    "applyType": "portal",
+    "city": "Karachi",
+    "company": "ZAKI Industrial Corporation",
+    "description": "Managerial role driving growth of a leading FMCG brand, developing brand strategy and ATL/BTL campaigns while working across sales, trade, retail and e-commerce teams; requires 4-6 years of brand management experience.",
+    "field": "Marketing",
+    "postingDate": "Oct 31, 2026",
+    "skills": [
+      "Brand Strategy",
+      "ATL/BTL Marketing",
+      "Campaign Management",
+      "Marketing Analytics",
+      "Consumer Insights"
+    ],
+    "title": "Brand Manager",
+    "workType": "On-site",
+    "link": "https://www.rozee.pk/brand-manager-karachi-jobs-1935857"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://pk.indeed.com/q-social-media-marketing-remote-l-rawalpindi-urdu-bazar-jobs.html",
+    "applyType": "portal",
+    "city": "Remote",
+    "company": "Capital Institute for Career Development",
+    "description": "100% remote role planning and optimizing paid campaigns across Meta Ads and Google Ads plus managing social media channels; requires minimum 1 year of hands-on paid advertising experience. Salary shown on listing: PKR 40,000-60,000 per month.",
+    "field": "Marketing",
+    "postingDate": "Not shown (found 2026-11-05)",
+    "skills": [
+      "Meta Ads Manager",
+      "Google Ads",
+      "Social Media Management",
+      "GA4",
+      "Paid Campaigns"
+    ],
+    "title": "Social Media & Paid Marketing Executive - Remote",
+    "workType": "Remote",
+    "link": "https://pk.indeed.com/q-social-media-marketing-remote-l-rawalpindi-urdu-bazar-jobs.html"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://www.rozee.pk/UR/territory-sales-officer-karachi-jobs-1736540",
+    "applyType": "portal",
+    "city": "Karachi",
+    "company": "Mezan Group",
+    "description": "Mezan Beverages (Cola Next) is hiring Territory Sales Officers in Karachi to manage distributor relationships and hit sales, coverage and visibility targets; requires a bachelor's degree and 2-4 years of FMCG sales experience. Salary shown on listing: Rs 60,000 to Rs 80,000 per month plus incentives.",
+    "field": "Sales",
+    "postingDate": "Not shown (found 2026-11-05)",
+    "skills": [
+      "FMCG Sales",
+      "Distributor Management",
+      "Negotiation",
+      "Route-to-Market",
+      "MS Office"
+    ],
+    "title": "Territory Sales Officer",
+    "workType": "On-site",
+    "link": "https://www.rozee.pk/UR/territory-sales-officer-karachi-jobs-1736540"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://www.rozee.pk/sales-job-samundari-faisalabad-samundri-jobs-1935863",
+    "applyType": "portal",
+    "city": "Samundri",
+    "company": "HRPSP - Your Strategic HR Partner",
+    "description": "Field-based role in Samundri, Faisalabad promoting and selling broadband and telecommunication services; requires at least Intermediate education, a valid driving licence and own bike. Salary shown on listing: basic starting from PKR 40,700 per month plus performance-based commission.",
+    "field": "Sales",
+    "postingDate": "Oct 31, 2026",
+    "skills": [
+      "Field Sales",
+      "Communication",
+      "Customer Relationships",
+      "Persuasive Selling"
+    ],
+    "title": "Sales Job - Samundari Faisalabad",
+    "workType": "On-site",
+    "link": "https://www.rozee.pk/sales-job-samundari-faisalabad-samundri-jobs-1935863"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "http://pk.indeed.com/Call-Center-jobs",
+    "applyType": "portal",
+    "city": "Islamabad",
+    "company": "HRPSP - Your Strategic HR Partner",
+    "description": "Full-time, in-person call center role in Islamabad for energetic, customer-focused individuals with good communication skills. Pay shown on listing: from Rs 40,000 per month.",
+    "field": "Customer Support",
+    "postingDate": "Not shown (found 2026-11-05)",
+    "skills": [
+      "Urdu Communication",
+      "Customer Service",
+      "Call Handling",
+      "Communication Skills"
+    ],
+    "title": "Call Center Agent (Urdu)",
+    "workType": "On-site",
+    "link": "http://pk.indeed.com/Call-Center-jobs"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://pk.indeed.com/pakistan-call-center-Rs-360,000-jobs",
+    "applyType": "portal",
+    "city": "Karachi",
+    "company": "1AZ0 Marketing (Pvt) Ltd",
+    "description": "Call center agent openings in Gulshan-e-Iqbal, Karachi, open to freshers and students. Pay shown on listing: up to Rs 45,000 per month plus commission on sales.",
+    "field": "Customer Support",
+    "postingDate": "Not shown (found 2026-11-05)",
+    "skills": [
+      "Communication",
+      "Telesales",
+      "Customer Support",
+      "Sales Targets"
+    ],
+    "title": "Call Center Agents (Freshers + Students)",
+    "workType": "On-site",
+    "link": "https://pk.indeed.com/pakistan-call-center-Rs-360,000-jobs"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://www.rozee.pk/senior-audit-manager-transaction-banking-operations-karachi-jobs-1935862",
+    "applyType": "portal",
+    "city": "Karachi",
+    "company": "Standard Chartered",
+    "description": "Lead and execute risk-based audits across the payments value chain (initiation, processing, clearing, settlement, reconciliation) at Standard Chartered in Karachi; background in internal/external audit, banking operations or technology risk required, CISA or CIA an advantage.",
+    "field": "Accounts / Finance",
+    "postingDate": "Oct 31, 2026",
+    "skills": [
+      "Internal Audit",
+      "Banking Operations",
+      "Risk & Controls",
+      "Data Analytics",
+      "CISA/CIA"
+    ],
+    "title": "Senior Audit Manager - Transaction Banking Operations",
+    "workType": "On-site",
+    "link": "https://www.rozee.pk/senior-audit-manager-transaction-banking-operations-karachi-jobs-1935862"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://www.mustakbil.com/jobs/job/1432313",
+    "applyType": "portal",
+    "city": "Karachi",
+    "company": "AZEE Securities (Pvt. Ltd.)",
+    "description": "Join the marketing and communications team of a Karachi capital-markets firm to create static/animated graphics and edit short- and long-form videos communicating the firm's research and brand across digital channels.",
+    "field": "Design",
+    "postingDate": "Not shown (found 2026-11-05)",
+    "skills": [
+      "Adobe Photoshop",
+      "Adobe Illustrator",
+      "Premiere Pro",
+      "After Effects",
+      "Motion Graphics"
+    ],
+    "title": "Graphic Designer & Video Editor",
+    "workType": "On-site",
+    "link": "https://www.mustakbil.com/jobs/job/1432313"
+  },
+  {
+    "applyEmail": "careers@hijazhospital.org.pk",
+    "applyLink": "https://www.pakvacancy.com/jobs/hijaz-teaching-hospital-lahore-jobs-2026",
+    "applyType": "email",
+    "city": "Lahore",
+    "company": "Hijaz Teaching Hospital",
+    "description": "Clinical Nursing Instructor position at Hijaz Teaching Hospital, Gulberg, Lahore (advertised in Jang, Nov 1, 2026); requires Post RN or BSN with Pakistan Nursing Council registration, and offers a market-competitive salary, free medical facility and provident fund.",
+    "field": "Healthcare",
+    "postingDate": "Nov 1, 2026",
+    "skills": [
+      "Nursing Education",
+      "BSN / Post RN",
+      "PNC Registration",
+      "Clinical Training"
+    ],
+    "title": "Clinical Nursing Instructor",
+    "workType": "On-site",
+    "link": "https://www.pakvacancy.com/jobs/hijaz-teaching-hospital-lahore-jobs-2026"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://jobsleap.com/aga-khan-university-hospital-akuh-pakistan-jobs-2026/",
+    "applyType": "portal",
+    "city": "Karachi",
+    "company": "Aga Khan University Hospital",
+    "description": "Head Nurse role in Emergency Medicine at Aga Khan University Hospital, Karachi, part of AKUH's current advertised positions; applications are made online via the AKU careers portal, with this role closing 14 November 2026.",
+    "field": "Healthcare",
+    "postingDate": "Oct 31, 2026",
+    "skills": [
+      "Emergency Nursing",
+      "Nursing Leadership",
+      "Patient Care",
+      "Team Management"
+    ],
+    "title": "Head Nurse, Emergency Medicine",
+    "workType": "On-site",
+    "link": "https://jobsleap.com/aga-khan-university-hospital-akuh-pakistan-jobs-2026/"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://parwaz.tech/pakistan-jobs/",
+    "applyType": "portal",
+    "city": "Karachi",
+    "company": "National Bank of Pakistan",
+    "description": "Manager Initiatives & Digital Learning (AVP) in Human Resource Management at National Bank of Pakistan, Karachi; a three-year contractual (renewable) role requiring a minimum of 6 years of experience, deadline 17 November 2026.",
+    "field": "HR / Admin",
+    "postingDate": "Nov 4, 2026",
+    "skills": [
+      "HR Management",
+      "Digital Learning",
+      "Training & Development"
+    ],
+    "title": "Manager Initiatives & Digital Learning (AVP)",
+    "workType": "On-site",
+    "link": "https://parwaz.tech/pakistan-jobs/"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://parwaz.tech/pakistan-jobs/",
+    "applyType": "portal",
+    "city": "Rajanpur",
+    "company": "Islamic Relief Pakistan",
+    "description": "Assistant People & Culture Officer position with Islamic Relief Pakistan based in Rajanpur; application deadline 9 November 2026.",
+    "field": "HR / Admin",
+    "postingDate": "Nov 4, 2026",
+    "skills": [
+      "HR Administration",
+      "People & Culture",
+      "Recruitment Support"
+    ],
+    "title": "Assistant People & Culture Officer",
+    "workType": "On-site",
+    "link": "https://parwaz.tech/pakistan-jobs/"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://parwaz.tech/pakistan-jobs/",
+    "applyType": "portal",
+    "city": "Islamabad",
+    "company": "Allama Iqbal Open University",
+    "description": "Allama Iqbal Open University, Islamabad invites online applications from Pakistani citizens for 15 teaching posts (Associate Professors and Lecturers) on a regular or contract basis across the Faculty of Sciences and Faculty of Social Sciences and Humanities; deadline 30 November 2026.",
+    "field": "Education",
+    "postingDate": "Nov 5, 2026",
+    "skills": [
+      "Teaching",
+      "Research",
+      "Subject Expertise"
+    ],
+    "title": "Associate Professors and Lecturers (15 Posts)",
+    "workType": "On-site",
+    "link": "https://parwaz.tech/pakistan-jobs/"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://pakjobbazar.com/human-rights-minorities-affairs-department-punjab-jobs-2026/",
+    "applyType": "portal",
+    "city": "Lahore",
+    "company": "Human Rights & Minorities Affairs Department, Govt of Punjab",
+    "description": "Project-based Content Writer (PPS-7) post in Lahore creating website content for the HR&MA Capacity Building & Human Rights Awareness project; requires BS/MA in English, Urdu or Mass Communication and Punjab domicile, with applications due by 13 November 2026. Salary shown on listing: Rs 207,900 per month.",
+    "field": "Content",
+    "postingDate": "Not shown (found 2026-11-05)",
+    "skills": [
+      "Content Writing",
+      "English/Urdu Writing",
+      "Mass Communication"
+    ],
+    "title": "Content Writer (PPS-7)",
+    "workType": "On-site",
+    "link": "https://pakjobbazar.com/human-rights-minorities-affairs-department-punjab-jobs-2026/"
+  },
+  {
+    "applyEmail": "",
+    "applyLink": "https://www.jobglobe.net/jobs/c795b64f-0b4c-4f59-9613-9bb5bbe08104/lahore-university-of-management-sciences-pakistan/warehouse-helper",
+    "applyType": "portal",
+    "city": "Lahore",
+    "company": "Lahore University of Management Sciences",
+    "description": "Warehouse Helper in LUMS Procurement department, Lahore, assisting the storekeeper with receiving, storing, issuing and organising materials and supplies; requires at least Intermediate in Commerce and knowledge of warehouse operations, with applications via the LUMS careers portal by 12 November 2026.",
+    "field": "Logistics",
+    "postingDate": "Nov 3, 2026",
+    "skills": [
+      "Warehouse Operations",
+      "Inventory Handling",
+      "Loading & Unloading",
+      "Stock Organization"
+    ],
+    "title": "Warehouse Helper",
+    "workType": "On-site",
+    "link": "https://www.jobglobe.net/jobs/c795b64f-0b4c-4f59-9613-9bb5bbe08104/lahore-university-of-management-sciences-pakistan/warehouse-helper"
+  }
+];
 
 function defaultSettings() {
   return {
@@ -118,7 +469,7 @@ function loadDb() {
     adminSetupCodeHash: null,
     users: [], jobs: [], codes: [], sessions: [], states: [], sendLog: []
   };
-  for (const j of SEED_JOBS) db.jobs.push(Object.assign({ id: uid(), active: true, createdAt: now() }, j));
+  for (const j of SEED_JOBS.concat(SEED_JOBS_MORE)) db.jobs.push(Object.assign({ id: uid(), active: true, createdAt: now() }, j));
   saveDb(db);
   return db;
 }
@@ -947,8 +1298,19 @@ async function handleApi(req, res, url) {
   // ---- jobs (user view)
   if (p === '/api/jobs' && req.method === 'GET') {
     const user = requireUser(req, res); if (!user) return;
-    const jobs = db.jobs.filter(j => j.active).map(j => jobForUser(user, j))
-      .sort((a, b) => (b.match ?? -1) - (a.match ?? -1));
+    let pool = db.jobs.filter(j => j.active);
+    let jobs;
+    if (!user.skills || !user.skills.length) {
+      // No CV yet: show every job added in the last 5 days, newest first
+      // (owner's rule, 2026-11-05). Jobs without a stored date count as fresh.
+      const cutoff = now() - 5 * 24 * 3600 * 1000;
+      jobs = pool.filter(j => !j.createdAt || j.createdAt >= cutoff)
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+        .map(j => jobForUser(user, j));
+    } else {
+      jobs = pool.map(j => jobForUser(user, j))
+        .sort((a, b) => (b.match ?? -1) - (a.match ?? -1));
+    }
     return sendJson(res, 200, { jobs });
   }
   const jobMatch = p.match(/^\/api\/jobs\/([a-z0-9]+)(\/state|\/apply-email)?$/);
