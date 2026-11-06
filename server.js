@@ -459,14 +459,11 @@ function loadDb() {
       db.users = db.users || []; db.jobs = db.jobs || [];
       db.codes = db.codes || []; db.sessions = db.sessions || [];
       db.states = db.states || []; db.sendLog = db.sendLog || [];
-      db.admin = db.admin || null;
       return db;
     } catch (e) { console.error('DB parse failed, starting fresh:', e.message); }
   }
   const db = {
     settings: defaultSettings(),
-    admin: null,
-    adminSetupCodeHash: null,
     users: [], jobs: [], codes: [], sessions: [], states: [], sendLog: []
   };
   for (const j of SEED_JOBS.concat(SEED_JOBS_MORE)) db.jobs.push(Object.assign({ id: uid(), active: true, createdAt: now() }, j));
@@ -481,19 +478,7 @@ function saveDb(d) {
   fs.renameSync(tmp, DB_FILE);
 }
 
-// One-time admin setup code, printed once per boot while no admin exists.
-let adminSetupCodePlain = null;
-if (!db.admin) {
-  adminSetupCodePlain = String(Math.floor(100000 + Math.random() * 900000));
-  db.adminSetupCodeHash = sha256(adminSetupCodePlain);
-  saveDb();
-  console.log('============================================================');
-  console.log('  ADMIN SETUP REQUIRED — one-time admin setup code:');
-  console.log('     >>>  ' + adminSetupCodePlain + '  <<<');
-  console.log('  Open /admin in your browser and use this code to create');
-  console.log('  the admin account. This code is shown only in this console.');
-  console.log('============================================================');
-}
+
 
 // ------------------------------------------------------- skills dictionary
 // canonical name -> synonyms (all matched case-insensitively)
@@ -1040,11 +1025,6 @@ function requireUser(req, res) {
   if (!u) { sendJson(res, 401, { error: 'Account not found.' }); return null; }
   return u;
 }
-function requireAdmin(req, res) {
-  const s = getSession(req);
-  if (!s || s.role !== 'admin') { sendJson(res, 401, { error: 'Admin login required.' }); return null; }
-  return s;
-}
 function jobForUser(user, job) {
   const st = getState(user.id, job.id);
   // "Related to my CV": the user has at least one of the job's listed skills
@@ -1414,162 +1394,16 @@ async function handleApi(req, res, url) {
     }
   }
 
-  // ---- admin
-  if (p.startsWith('/api/admin')) return handleAdmin(req, res, url, p);
+  // No admin panel — removed by owner's decision (2026-11-06). Jobs are managed via code/seeds.
+  if (p.startsWith('/api/admin')) return sendJson(res, 404, { error: 'Not found.' });
 
   return sendJson(res, 404, { error: 'Not found.' });
-}
-
-async function handleAdmin(req, res, url, p) {
-  if (p === '/api/admin/status' && req.method === 'GET') {
-    const s = getSession(req);
-    return sendJson(res, 200, { needsSetup: !db.admin, loggedIn: Boolean(s && s.role === 'admin') });
-  }
-  if (p === '/api/admin/setup' && req.method === 'POST') {
-    if (db.admin) return sendJson(res, 400, { error: 'Admin account already exists.' });
-    const b = await readJson(req);
-    if (!adminSetupCodePlain || sha256(String(b.code || '')) !== db.adminSetupCodeHash) {
-      return sendJson(res, 400, { error: 'Wrong setup code. Check the server console for the one-time code.' });
-    }
-    const email = normEmail(b.email);
-    if (!validEmail(email)) return sendJson(res, 400, { error: 'Please enter a valid admin email.' });
-    if (!b.password || String(b.password).length < 8) {
-      return sendJson(res, 400, { error: 'Password must be at least 8 characters.' });
-    }
-    db.admin = { email, passwordHash: scryptHash(b.password), createdAt: now() };
-    db.adminSetupCodeHash = null; adminSetupCodePlain = null;
-    saveDb();
-    const token = createSession('admin', 'admin');
-    return sendJson(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie(token) });
-  }
-  if (p === '/api/admin/login' && req.method === 'POST') {
-    const b = await readJson(req);
-    if (!db.admin) return sendJson(res, 400, { error: 'No admin account yet. Setup is required.' });
-    if (normEmail(b.email) !== db.admin.email || !scryptVerify(b.password || '', db.admin.passwordHash)) {
-      return sendJson(res, 401, { error: 'Wrong email or password.' });
-    }
-    const token = createSession('admin', 'admin');
-    return sendJson(res, 200, { ok: true }, { 'Set-Cookie': sessionCookie(token) });
-  }
-  if (p === '/api/admin/logout' && req.method === 'POST') {
-    destroySession(req);
-    return sendJson(res, 200, { ok: true }, { 'Set-Cookie': clearCookie() });
-  }
-
-  const sess = requireAdmin(req, res); if (!sess) return;
-
-  if (p === '/api/admin/stats' && req.method === 'GET') {
-    return sendJson(res, 200, {
-      users: db.users.length,
-      jobs: db.jobs.length,
-      activeJobs: db.jobs.filter(j => j.active).length,
-      applications: db.states.filter(s => s.status === 'applied').length,
-      emailsSent: db.sendLog.length,
-      autoApplyUsers: db.users.filter(u => u.autoApply && u.autoApply.on).length,
-      smtpConfigured: smtpConfigured(),
-      googleConfigured: googleConfigured()
-    });
-  }
-  if (p === '/api/admin/jobs' && req.method === 'GET') {
-    return sendJson(res, 200, { jobs: db.jobs });
-  }
-  if (p === '/api/admin/jobs' && req.method === 'POST') {
-    const b = await readJson(req);
-    const job = sanitizeJob(b, { id: uid(), createdAt: now() });
-    if (job.error) return sendJson(res, 400, { error: job.error });
-    db.jobs.push(job); saveDb();
-    runAutoApply('new-job').catch(e => console.error('auto-apply:', e.message));
-    return sendJson(res, 200, { job });
-  }
-  const jm = p.match(/^\/api\/admin\/jobs\/([a-z0-9]+)$/);
-  if (jm && req.method === 'PUT') {
-    const idx = db.jobs.findIndex(j => j.id === jm[1]);
-    if (idx === -1) return sendJson(res, 404, { error: 'Job not found.' });
-    const b = await readJson(req);
-    const job = sanitizeJob(b, db.jobs[idx]);
-    if (job.error) return sendJson(res, 400, { error: job.error });
-    db.jobs[idx] = job; saveDb();
-    return sendJson(res, 200, { job });
-  }
-  if (jm && req.method === 'DELETE') {
-    db.jobs = db.jobs.filter(j => j.id !== jm[1]);
-    saveDb();
-    return sendJson(res, 200, { ok: true });
-  }
-  if (p === '/api/admin/users' && req.method === 'GET') {
-    const users = db.users.map(u => ({
-      id: u.id, email: u.email, name: u.name || '', city: u.city || '',
-      signupAt: u.createdAt, hasCv: Boolean(u.cv),
-      autoApply: Boolean(u.autoApply && u.autoApply.on),
-      googleConnected: isGoogleConnected(u),
-      applications: db.states.filter(s => s.userId === u.id && s.status === 'applied').length
-    }));
-    return sendJson(res, 200, { users });
-  }
-  if (p === '/api/admin/settings' && req.method === 'GET') {
-    const st = db.settings;
-    return sendJson(res, 200, {
-      settings: {
-        siteName: st.siteName,
-        googleClientId: st.googleClientId,
-        googleClientSecretSet: Boolean(st.googleClientSecret),
-        smtpProduct: { email: st.smtpProduct.email, appPasswordSet: Boolean(st.smtpProduct.appPassword) },
-        smtpOwner: { email: st.smtpOwner.email, appPasswordSet: Boolean(st.smtpOwner.appPassword) },
-        smtpActive: st.smtpActive,
-        autoThreshold: st.autoThreshold,
-        autoDailyCap: st.autoDailyCap
-      }
-    });
-  }
-  if (p === '/api/admin/settings' && req.method === 'PUT') {
-    const b = await readJson(req);
-    const st = db.settings;
-    if (b.siteName) st.siteName = String(b.siteName).slice(0, 40);
-    if (b.googleClientId !== undefined) st.googleClientId = String(b.googleClientId).trim();
-    if (b.googleClientSecret) st.googleClientSecret = String(b.googleClientSecret).trim();
-    for (const slot of ['smtpProduct', 'smtpOwner']) {
-      if (b[slot]) {
-        if (b[slot].email !== undefined) st[slot].email = normEmail(b[slot].email);
-        if (b[slot].appPassword) st[slot].appPassword = String(b[slot].appPassword).trim();
-      }
-    }
-    if (['product', 'owner'].includes(b.smtpActive)) st.smtpActive = b.smtpActive;
-    if (b.autoThreshold !== undefined) st.autoThreshold = Math.max(0, Math.min(100, Number(b.autoThreshold) || 60));
-    if (b.autoDailyCap !== undefined) st.autoDailyCap = Math.max(1, Math.min(100, Number(b.autoDailyCap) || 10));
-    saveDb();
-    return sendJson(res, 200, { ok: true, smtpConfigured: smtpConfigured() });
-  }
-  return sendJson(res, 404, { error: 'Not found.' });
-}
-function sanitizeJob(b, base) {
-  const title = String(b.title || '').trim(), company = String(b.company || '').trim();
-  if (!title || !company) return { error: 'Title and company are required.' };
-  const applyType = b.applyType === 'email' ? 'email' : 'portal';
-  const skills = Array.isArray(b.skills) ? b.skills
-    : String(b.skills || '').split(',').map(s => s.trim()).filter(Boolean);
-  const job = Object.assign({}, base, {
-    title, company,
-    city: String(b.city || '').trim() || 'Karachi',
-    workType: ['On-site', 'Hybrid', 'Remote'].includes(b.workType) ? b.workType : 'On-site',
-    field: String(b.field || '').trim(),
-    skills: skills.slice(0, 20),
-    applyType,
-    applyEmail: applyType === 'email' ? normEmail(b.applyEmail) : '',
-    applyLink: String(b.applyLink || '').trim(),
-    link: String(b.link || b.applyLink || '').trim(),
-    postingDate: String(b.postingDate || '').trim(),
-    description: String(b.description || '').trim(),
-    active: b.active !== false
-  });
-  if (applyType === 'email' && !validEmail(job.applyEmail)) return { error: 'A valid apply email is required for email-apply jobs.' };
-  return job;
 }
 
 // ------------------------------------------------------------------ static
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'application/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' };
 function serveStatic(req, res, url) {
   let file = url.pathname === '/' ? '/index.html' : url.pathname;
-  if (file === '/admin') file = '/admin.html';
   const full = path.join(PUBLIC_DIR, path.normalize(file).replace(/^(\.\.[\/\\])+/, ''));
   if (!full.startsWith(PUBLIC_DIR) || !fs.existsSync(full) || fs.statSync(full).isDirectory()) {
     res.writeHead(404, { 'Content-Type': 'text/plain' }); return res.end('Not found');
@@ -1591,7 +1425,7 @@ const server = http.createServer(async (req, res) => {
 });
 server.listen(PORT, () => {
   console.log(db.settings.siteName + ' server running at http://localhost:' + PORT);
-  console.log('Public site: /   Admin (hidden): /admin');
+  console.log('Public site: /');
   if (DEMO_GOOGLE) console.log('*** DEMO_GOOGLE=1 — TEST MODE: Google sends go to data/outbox.log, NOT real email. ***');
-  if (!smtpConfigured()) console.log('*** No SMTP configured — verification codes are printed to this console (demo mode). Configure senders in Admin > Settings. ***');
+  if (!smtpConfigured()) console.log('*** No SMTP configured — verification codes are printed to this console (demo mode). ***');
 });
