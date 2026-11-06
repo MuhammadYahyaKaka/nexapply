@@ -291,13 +291,15 @@ async function loadApplications() {
     const r = await api('/api/me/applications');
     const apps = r.applications;
     const applied = apps.filter(a => a.status === 'applied');
-    $('#appsStats').innerHTML = `
+    const statsHtml = `
       <div class="stat-cards">
         <div class="stat"><b>${apps.length}</b><span>Total tracked</span></div>
         <div class="stat"><b>${applied.length}</b><span>Applied</span></div>
         <div class="stat"><b>${apps.filter(a => a.status === 'saved').length}</b><span>Saved</span></div>
         <div class="stat"><b>${apps.filter(a => a.status === 'skipped').length}</b><span>Skipped</span></div>
       </div>`;
+    $('#appsStats').innerHTML = statsHtml;
+    const js = $('#jobsStats'); if (js) js.innerHTML = statsHtml;
     $('#appsList').innerHTML = apps.length ? `
       <table><tr><th>Job</th><th>Company</th><th>Status</th><th>Date applied</th></tr>
       ${apps.map(a => `<tr><td>${esc(a.title)}</td><td>${esc(a.company)}<br><span class="small">${esc(a.city)}</span></td>
@@ -416,7 +418,7 @@ function renderSettings() {
       ME = r.user; renderSettings();
     });
   } else if (!CONFIG.googleConfigured && !CONFIG.demoGoogle) {
-    box.innerHTML = '<div class="notice">Google connect is <b>not set up yet</b> by the site admin, so one-click and auto-apply sending are not available yet. You can still apply to every job yourself using the apply links and ready cover letters.</div>';
+    box.innerHTML = '<div class="notice">Google connect is <b>not set up yet</b> on this site, so one-click and auto-apply sending are not available yet. You can still apply to every job yourself using the apply links and ready cover letters.</div>';
   } else {
     box.innerHTML = '<p><a class="btn" href="/api/me/google/connect">Connect my Google account</a></p>' +
       '<p class="small">You will sign in on Google\'s own page and allow only "send email" permission. Connect the Google account with the same email as this account (' + esc(ME.email) + ').</p>';
@@ -451,6 +453,9 @@ function renderTimer() {
     $('#timerStatus').innerHTML = '<div class="notice">Timer is ON, but right now is <b>outside</b> your window — window: ' + esc(timerWindowText(t)) + '. Auto-apply will run when your window opens.</div>';
   }
 }
+$('#timerToggle').addEventListener('change', () => {
+  $('#timerState').textContent = $('#timerToggle').checked ? 'ON' : 'OFF';
+});
 $('#timerSaveBtn').addEventListener('click', async () => {
   $('#timerMsg').innerHTML = '';
   const days = [...document.querySelectorAll('#timerDays input:checked')].map(cb => Number(cb.value));
